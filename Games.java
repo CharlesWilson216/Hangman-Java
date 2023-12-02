@@ -2,6 +2,9 @@ import java.util.*;
 import java.io.*;
 
 public class Games {
+
+private static int wrongCount = 0;
+
 	public static void main(String[] args) throws FileNotFoundException {
 		int game = chooseGame();
 		runGame(game);
@@ -40,32 +43,45 @@ public class Games {
 	}
 	public static void Hangman() throws FileNotFoundException {
 		String word = chooseWord();
-		System.out.println("The word will be: " + word);
 		String hiddenWord = makeHiddenWord(word);
 		int result = formatGame(word, hiddenWord);
 	}
-	public static int formatGame(String word, String hiddenWord) {
+	public static int formatGame(String word, String hiddenWord) throws FileNotFoundException {
 		int count = 0;
 		char letter = '*';
+		word = word.toLowerCase();
+		printBarrier();
 		Scanner console = new Scanner(System.in);
-		System.out.println(hiddenWord);
+		for (int i = 0; i < hiddenWord.length(); ++i) {
+			System.out.print(hiddenWord.charAt(i) + " ");
+		}
+		System.out.println();
+		printGraphic(wrongCount, hiddenWord, word);
+		System.out.println();
 		while (!(hiddenWord.equalsIgnoreCase(word)) && count <= 7) {
+			printBarrier();
 			System.out.print("Please guess a letter: ");
 			String letterAsString = console.next();
 			System.out.println();
-			while (letterAsString.length() != 1 && !(Character.isLetter(letter))) {
-				System.out.print("Please guess a valid character: ");
-				letterAsString = console.next();
-				if (letterAsString.length() == 1) {
+			if (letterAsString.length() == 1 && Character.isLetter(letterAsString.charAt(0))) {
+				letter = letterAsString.charAt(0);
+			}
+			while (letter == '*') {
+				if (letterAsString.length() == 1 && Character.isLetter(letterAsString.charAt(0))) {
 					letter = letterAsString.charAt(0);
+				} else {
+					System.out.print("\nPlease enter a valid letter: ");
+					letterAsString = console.next();
 				}
 			}
+			letter = Character.toLowerCase(letter);
 			hiddenWord = guessLetter(word, hiddenWord, letter);
+			printGraphic(wrongCount, hiddenWord, word);
+			letter = '*';
 		}
 		return 0;
 	}
-	public static String guessLetter(String word, String hiddenWord, char letter) {
-		int wrongCount = 0;
+	public static String guessLetter(String word, String hiddenWord, char letter) throws FileNotFoundException {
 		char Arr_hiddenWord[] = hiddenWord.toCharArray();
 		String initialhiddenWord = hiddenWord;
 		for (int i = 0; i < word.length(); ++i) {
@@ -77,26 +93,38 @@ public class Games {
 		if (initialhiddenWord.equals(hiddenWord)) {
 			++wrongCount;
 		}
-		//printGraphic(wrongCount);
-		//after 7 wrong guesses, return hiddenWord as an empty string
-		//so hiddenWord will be passed to this method but until it executes the last file it wont alter hiddenWord
-		System.out.println(hiddenWord);
+		for (int j = 0; j < hiddenWord.length(); ++j) {
+			System.out.print(hiddenWord.charAt(j) + " ");
+		}
+		System.out.println();
 		return hiddenWord;
-	}			
+	}	
 	public static String makeHiddenWord(String word) {
 		int length = word.length();
 		String hiddenWord = "_";
 		for (int i = 1; i < word.length(); ++i) {
 			if (word.charAt(i) == ' ') {
-				hiddenWord = hiddenWord + "  ";
+				hiddenWord = hiddenWord + " ";
 			} else if (word.charAt(i) == '-') {
-				hiddenWord = hiddenWord + " -";
+				hiddenWord = hiddenWord + "-";
 			} else {
-				hiddenWord = hiddenWord + " _";
+				hiddenWord = hiddenWord + "_";
 			}
 		}
 		return hiddenWord;
 	}
+	public static String printGraphic(int wrongCount, String hiddenWord, String word) throws FileNotFoundException {
+		Scanner file = new Scanner(new File("Pictures/" + wrongCount + "~Wrong.txt"));
+		while(file.hasNextLine()) {
+			System.out.println(file.nextLine());
+		}
+		if (wrongCount == 7) {
+			System.out.println("The word was \"" + word + ".\"");
+			System.exit(0);
+		}
+		return hiddenWord;
+	}
+
 	public static String chooseWord() throws FileNotFoundException {
 		Scanner console = new Scanner(System.in);
 		Random getLine = new Random();
